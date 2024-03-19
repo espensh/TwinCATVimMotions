@@ -18,3 +18,4 @@ C:\Users\espen\Development\csharp\wimvimkeys\obj\Debug\net8.0-windows\Interop.En
 C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\envdte.dll
 C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\Microsoft.VisualStudio.Interop.dll
 C:\Users\espen\Development\csharp\wimvimkeys\obj\Debug\net8.0-windows\wimvimkeys.csproj.CopyComplete
+C:\Users\espen\Development\csharp\wimvimkeys\obj\Debug\net8.0-windows\wimvimkeys.sourcelink.json

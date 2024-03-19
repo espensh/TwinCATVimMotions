@@ -294,6 +294,7 @@ static class Program
                 if ((Keys)vkCode == Keys.Escape)
                 {
                     normalMode = true;
+                    VisualMode = false;
                     return (IntPtr)1;
                 }
 
