@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "wimvimkeys": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}
