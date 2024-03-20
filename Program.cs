@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using EnvDTE80;
+using System.Text.RegularExpressions;
 namespace wimvimkeys;
 
 static class Program
@@ -113,6 +114,68 @@ static class Program
             // Determine if the character is uppercase or lowercase based on Shift and Caps Lock
             bool isUpperCase = (!isShiftPressed && !isCapsLockOn) || (isShiftPressed && isCapsLockOn);
 
+            if (isControlPressed && pressedChar == 'K')
+            {
+                buffer.Enqueue(pressedChar);
+
+                if (buffer.Count > 2)
+                {
+                    buffer.Dequeue();
+                }
+
+            }
+
+
+            if (buffer.Count == 2 && buffer.Peek() == 'K' && pressedChar == 'D')
+            {
+                buffer.Clear();
+
+                SendKeys.Send("^c");    // Trigger the copy action
+                System.Threading.Thread.Sleep(1000); // wait a bit for the caret to move
+
+                var code = Clipboard.GetText();
+
+                code = code.Replace("\t", " ");
+                code = Regex.Replace(code, " {2,}", " ").Replace("// [", "//[");
+
+                var parts = code.Split("FUNCTION_BLOCK");
+                var headerSection = parts[0] + "FUNCTION_BLOCK";
+
+                if (parts.Length > 1)
+                {
+                    var headerlines = Regex.Split(headerSection, @"\r\n|\r|\n").ToList();
+                    headerlines = headerlines.Align("[");
+
+                var codeSection = parts[1];
+                    var lines = Regex.Split(codeSection, @"\r\n|\r|\n").ToList();
+                    lines = lines.AlignFirstOccurance(":");
+                    lines = lines.AlignFirstOccurance(";");
+                    lines = lines.AlignFirstOccurance("//");
+                    lines = lines.Align("[",
+                        s =>
+                        {
+                            if (s.Replace(" ", "").Contains("ARRAY["))
+                            {
+                                return false;
+                            }
+                            return true;
+                        });
+
+                    Clipboard.SetText(string.Join(Environment.NewLine, headerlines) + string.Join(Environment.NewLine, lines));
+
+                System.Threading.Thread.Sleep(1000); // wait a bit for the caret to move
+
+                    
+                    SendKeys.Send("^v");    // Trigger the copy action
+                }
+
+            }
+
+
+                if (isControlPressed && (Keys)vkCode == Keys.D)
+                    return (IntPtr)1;
+                if (isControlPressed && (Keys)vkCode == Keys.K)
+                    return (IntPtr)1;
 
             if (normalMode)
             {
@@ -210,16 +273,31 @@ static class Program
 
                 if ((Keys)vkCode == Keys.Y)
                 {
-
                     return (IntPtr)1;
                 }
 
                 if (IsNumericKey(vkCode))
                 {
                     Console.WriteLine($"Numeric key pressed: {(Keys)vkCode}");
-                    RepeatKey = vkCode - 48;
+                    if ((Keys)vkCode != Keys.D0)
+                    {
+                        RepeatKey = vkCode - 48;
+                        return (IntPtr)1; // Signal that we handled the key press
+                    }
+                }
+
+
+                if ((Keys)vkCode == Keys.D0)
+                {
+                    SendKeys.Send("{END}");
                     return (IntPtr)1; // Signal that we handled the key press
                 }
+                if (vkCode == 0x24) // $ character
+                {
+                    SendKeys.Send("{HOME}");
+                    return (IntPtr)1; // Signal that we handled the key press
+                }
+
 
                 if ((Keys)vkCode == Keys.C)
                 {
@@ -262,11 +340,30 @@ static class Program
                     }
 
                 }
+
+                if ((Keys)vkCode == Keys.G)
+                {
+                    return CommandChaining("^{HOME}");
+                }
+                if (isShiftPressed && (Keys)vkCode == Keys.G)
+                {
+                    return CommandChaining("^{END}");
+                }
+                if ((Keys)vkCode == Keys.L)
+                {
+                    return CommandChaining("{RIGHT}");
+                }
+
+
                 if ((Keys)vkCode == Keys.L)
                 {
                     return CommandChaining("{RIGHT}");
                 }
                 if (!isControlPressed && (Keys)vkCode == Keys.W)
+                {
+                    return CommandChaining("^{RIGHT}");
+                }
+                if (!isControlPressed && (Keys)vkCode == Keys.E)
                 {
                     return CommandChaining("^{RIGHT}");
                 }
@@ -291,12 +388,12 @@ static class Program
             }
 
 
-                if ((Keys)vkCode == Keys.Escape)
-                {
-                    normalMode = true;
-                    VisualMode = false;
-                    return (IntPtr)1;
-                }
+            if ((Keys)vkCode == Keys.Escape)
+            {
+                normalMode = true;
+                VisualMode = false;
+                return (IntPtr)1;
+            }
 
 
         }
@@ -574,4 +671,102 @@ static class Program
             System.Threading.Thread.Sleep(500);
         }
     }
+
+
+
+
+
+
+    // Code-alignment
+
+    public static List<string> Align(this IEnumerable<string> input,
+                                 string aligner,
+                                 Func<string, bool> shouldAffectAlignment = null)
+    {
+        var strings = input.ToList();
+        if (!strings.Any() || string.IsNullOrEmpty(aligner)) return strings;
+
+        // If no predicate is provided, consider all strings should affect alignment
+        shouldAffectAlignment ??= s => true;
+
+        bool continueAligning;
+        int occurrenceIndex = 0; // Start aligning from the first occurrence
+
+        do
+        {
+            // Calculate maxAlignerIndex only considering strings that should affect alignment
+            int maxAlignerIndex = strings.Where(p=>shouldAffectAlignment == null ? true :  shouldAffectAlignment(p))
+                                             .Select(s => s.NthIndexOfV2(aligner, occurrenceIndex))
+                                             .Max();
+
+            continueAligning = maxAlignerIndex != -1; // Continue aligning if aligner is present in any string
+
+            if (continueAligning)
+            {
+                strings = strings.Select(s =>
+                {
+                    if (!shouldAffectAlignment(s)) return s; // Return the string unmodified if it should not affect alignment
+
+                    int alignerIndex = s.NthIndexOfV2(aligner, occurrenceIndex);
+                    if (alignerIndex == -1 || alignerIndex >= maxAlignerIndex) return s; // No aligner in this string or no padding needed
+
+                    string padding = new string(' ', maxAlignerIndex - alignerIndex); // Calculate needed padding
+                    return s.Insert(alignerIndex, padding); // Insert padding before aligner
+                }).ToList();
+            }
+
+            occurrenceIndex++; // Move to the next occurrence
+        } while (continueAligning);
+
+        return strings;
+    }
+
+
+    public static int NthIndexOfV2(this string str, string value, int n)
+    {
+        int count = 0;
+        int index = -1;
+        while (count <= n)
+        {
+            index = str.IndexOf(value, index + 1);
+            if (index == -1) break;
+            count++;
+        }
+        return index;
+    }
+
+
+
+
+    public static List<string> AlignFirstOccurance(this IEnumerable<string> input, string aligner, Func<string, bool> shouldAffectAlignment = null)
+    {
+        var strings = input.ToList();
+        if (!strings.Any()) return strings;
+        var colonStartMax = 0;
+        foreach (var item in strings)
+        {
+            if (shouldAffectAlignment == null || shouldAffectAlignment(item))
+            {
+                var max = item.IndexOf(aligner);
+                if (max > colonStartMax)
+                    colonStartMax = max;
+            }
+        }
+        //strings.Max(p => p.IndexOf(aligner));
+        return strings.Select(p =>
+        {
+            if (shouldAffectAlignment == null || shouldAffectAlignment(p))
+            {
+                var itemColonStart = p.IndexOf(aligner);
+                if (itemColonStart == -1) return p;
+                return p.Insert(itemColonStart, "".PadLeft(colonStartMax - itemColonStart));
+            }
+            return p;
+        }).ToList();
+    }
+
+
+
+
+
 }

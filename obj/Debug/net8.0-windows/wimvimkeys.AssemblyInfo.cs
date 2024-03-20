@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("wimvimkeys")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1795b22a00ad4dfcc8cdff96d50d8abca8c66b42")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b26c98d346c1ca2d138cc7ec138d8025ce39fbed")]
 [assembly: System.Reflection.AssemblyProductAttribute("wimvimkeys")]
 [assembly: System.Reflection.AssemblyTitleAttribute("wimvimkeys")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
