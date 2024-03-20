@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\esh\\development\\TwinCATVimMotions\\wimvimkeys.csproj": {}
+    "C:\\Users\\espen\\Development\\csharp\\wimvimkeys\\wimvimkeys.csproj": {}
   },
   "projects": {
-    "C:\\Users\\esh\\development\\TwinCATVimMotions\\wimvimkeys.csproj": {
+    "C:\\Users\\espen\\Development\\csharp\\wimvimkeys\\wimvimkeys.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\esh\\development\\TwinCATVimMotions\\wimvimkeys.csproj",
+        "projectUniqueName": "C:\\Users\\espen\\Development\\csharp\\wimvimkeys\\wimvimkeys.csproj",
         "projectName": "wimvimkeys",
-        "projectPath": "C:\\Users\\esh\\development\\TwinCATVimMotions\\wimvimkeys.csproj",
-        "packagesPath": "C:\\Users\\esh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\esh\\development\\TwinCATVimMotions\\obj\\",
+        "projectPath": "C:\\Users\\espen\\Development\\csharp\\wimvimkeys\\wimvimkeys.csproj",
+        "packagesPath": "C:\\Users\\espen\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\espen\\Development\\csharp\\wimvimkeys\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\esh\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\espen\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -23,8 +27,7 @@
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "C:\\Program Files\\dotnet\\library-packs": {},
-          "https://api.nuget.org/v3/index.json": {},
-          "https://nmsystemdev01.normatic.local:5001/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net8.0-windows7.0": {
@@ -36,11 +39,6 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -50,6 +48,10 @@
             "System.Runtime.InteropServices": {
               "target": "Package",
               "version": "[4.3.0, )"
+            },
+            "Tesseract": {
+              "target": "Package",
+              "version": "[5.2.0, )"
             },
             "envdte": {
               "target": "Package",
@@ -75,7 +77,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.200-preview.23624.5/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100-rc.1.23455.8/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

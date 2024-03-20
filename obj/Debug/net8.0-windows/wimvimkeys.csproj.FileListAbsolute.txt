@@ -40,3 +40,14 @@ C:\Users\esh\development\TwinCATVimMotions\obj\Debug\net8.0-windows\refint\wimvi
 C:\Users\esh\development\TwinCATVimMotions\obj\Debug\net8.0-windows\wimvimkeys.pdb
 C:\Users\esh\development\TwinCATVimMotions\obj\Debug\net8.0-windows\wimvimkeys.genruntimeconfig.cache
 C:\Users\esh\development\TwinCATVimMotions\obj\Debug\net8.0-windows\ref\wimvimkeys.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\OpenCvSharp.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\runtimes\win-x64\native\OpenCvSharpExtern.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\runtimes\win-x64\native\opencv_videoio_ffmpeg490_64.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\runtimes\win-x86\native\OpenCvSharpExtern.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\runtimes\win-x86\native\opencv_videoio_ffmpeg490.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\cursor_template.png
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\x86\leptonica-1.82.0.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\x86\tesseract50.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\x64\leptonica-1.82.0.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\x64\tesseract50.dll
+C:\Users\espen\Development\csharp\wimvimkeys\bin\Debug\net8.0-windows\Tesseract.dll
