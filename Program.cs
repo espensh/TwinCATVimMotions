@@ -6,9 +6,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using EnvDTE80;
 using System.Text.RegularExpressions;
-using OpenCvSharp;
-using Tesseract;
-using Point = OpenCvSharp.Point;
+using System.Numerics;
 namespace wimvimkeys;
 
 static class Program
@@ -68,6 +66,7 @@ static class Program
 
 
     private static bool Yanked { get; set; }
+    private static bool DeletionMode{ get; set; }
     private static bool OperationPending { get; set; }
     private static bool ChangeCommand { get; set; }
     private static bool InnerCommand { get; set; }
@@ -129,6 +128,28 @@ static class Program
 
             }
 
+            if (isLowerCase && vkCode == 226)
+            {
+                if (VisualMode)
+                {
+                    SendKeys.SendWait("+{TAB}");
+                    return (IntPtr)1;
+                }
+                SendKeys.SendWait("{HOME}+{TAB}");
+                return (IntPtr)1;
+            }
+            if (!isLowerCase && vkCode == 226)
+            {
+                ReleaseShiftKey();
+                if (VisualMode)
+                {
+
+                    SendKeys.SendWait("{TAB}");
+                    return (IntPtr)1;
+                }
+                SendKeys.SendWait("{HOME}{TAB}");
+                return (IntPtr)1;
+            }
 
             if (buffer.Count == 2 && buffer.Peek() == 'K' && pressedChar == 'D')
             {
@@ -275,18 +296,20 @@ static class Program
                     return (IntPtr)1;
                 }
 
-                if ((Keys)vkCode == Keys.O)
+                if (!isControlPressed && (Keys)vkCode == Keys.O)
                 {
 
                     if (isLowerCase)
                     {
                         SendKeys.SendWait("{END}{ENTER}");
+                        normalMode = false;
                         return (IntPtr)1;
                     }
                     else
                     {
                         ReleaseShiftKey();
                         SendKeys.SendWait("{HOME}{HOME}{UP}{END}{ENTER}");
+                        normalMode = false;
                         return (IntPtr)1;
                     }
                 }
@@ -300,36 +323,6 @@ static class Program
                         SendKeys.SendWait("+{END}");
                         SendKeys.Send("^c");
                         SendKeys.Send("{END}");
-
-                        using (var capture = new VideoCapture(0))
-                        {
-                            Mat frame = new Mat();
-                            capture.Read(frame);
-
-                            // Save the screenshot
-                            string screenshotPath = "screenshot.png";
-                            Cv2.ImWrite(screenshotPath, frame);
-
-                            // Perform OCR on the screenshot
-                            string extractedText = PerformOCR(screenshotPath);
-
-                            // Search for the selected text within the extracted text
-                            string selectedText = "Your selected text";
-                            int index = extractedText.IndexOf(selectedText);
-                            if (index != -1)
-                            {
-                                // Determine the location of the selected text in the screenshot
-                                Point textLocation = FindTextLocation(frame, selectedText, index);
-
-                                // Move the mouse cursor to the location of the selected text
-                                MoveMouse(textLocation.X, textLocation.Y);
-                            }
-                            else
-                            {
-                                Console.WriteLine("Selected text not found in the screenshot.");
-                            }
-                        }
-
 
                         OperationPending = false;
                         return (IntPtr)1;
@@ -360,7 +353,7 @@ static class Program
                     {
                         SendKeys.Send("{END}{ENTER}");
                         SendKeys.Send("^v");
-                        SendKeys.Send("{HOME}");
+                        SendKeys.Send("{HOME}{RIGHT}{LEFT}");
                         return (IntPtr)1;
                     }
                     else
@@ -369,7 +362,7 @@ static class Program
                         SendKeys.Send("{HOME}{HOME}{UP}{END}");
                         SendKeys.Send("{ENTER}");
                         SendKeys.Send("^v");
-                        SendKeys.Send("{HOME}");
+                        SendKeys.Send("{HOME}{RIGHT}{LEFT}");
                         return (IntPtr)1;
                     }
 
@@ -425,33 +418,69 @@ static class Program
                 // Advanced
                 if (!isControlPressed && (Keys)vkCode == Keys.C) { ChangeCommand = true; return (IntPtr)1; }
 
+                if (isControlPressed && isLowerCase && (Keys)vkCode == Keys.O)
+                {
+                    SendKeys.Send("^-");
+                    return (IntPtr)1;
+                }
+                if (isControlPressed && isLowerCase && (Keys)vkCode == Keys.I)
+                {
+                    SendKeys.Send("^+-");
+                    ReleaseShiftKey();
+                    return (IntPtr)1;
+                }
+
                 // General 
 
                 // TODO: delete current line
                 if ((Keys)vkCode == Keys.D)
                 {
-                    if (OperationPending && !VisualMode)
+                    if (OperationPending && !isShiftPressed)
                     {
-                        SendKeys.Send("{HOME}{HOME}+{END}{DEL}");
+                        SendKeys.Send("{F12}");
                         OperationPending = false;
                         return (IntPtr)1;
                     }
-                    if (OperationPending && VisualMode)
+                    if (DeletionMode && !VisualMode)
                     {
-                        SendKeys.Send("{DEL}");
-                        OperationPending = false;
+                        SendKeys.Send("{HOME}{HOME}+{END}^c");
+                        var curClip = Clipboard.GetText();
+                        if (curClip == "\r\n")
+                            SendKeys.Send("{HOME}{HOME}+{END}{DEL}");
+                        else
+                        {
+                            SendKeys.Send("{HOME}{HOME}+{END}{DEL}{DEL}");
+                        }
+                        DeletionMode = false;
+                        return (IntPtr)1;
+                    }
+                    if (DeletionMode && VisualMode)
+                    {
+                        SendKeys.Send("^c{DEL}");
+                        DeletionMode = false;
                         VisualMode = false;
                         return (IntPtr)1;
                     }
                     if (VisualMode)
                     {
-                        SendKeys.Send("{DEL}");
+                        SendKeys.Send("^c{DEL}");
                         VisualMode = false;
                         return (IntPtr)1;
                     }
-                    OperationPending = true;
+                    DeletionMode = true;
                     return (IntPtr)1;
                 }
+
+                //indexer visula mode
+                //ab - a block with ()
+                //aB - a block with {}
+                //at - a block with <> tags
+                //ib - inner block with ()
+                //iB - inner block with {}
+                //it - inner block with <> tags
+
+
+
 
 
                 // End of line
@@ -475,13 +504,39 @@ static class Program
                 if ((Keys)vkCode == Keys.L) { return CommandChaining("{RIGHT}"); }
 
                 // move Back one word
-                if ((Keys)vkCode == Keys.B) { return CommandChaining("^{LEFT}"); }
+                if ((Keys)vkCode == Keys.B) { 
+
+                    SendKeys.Send("^{LEFT}"); 
+                    SendKeys.Send("+{LEFT}");
+                    SendKeys.Send("^c");
+                    var clip = Clipboard.GetText();
+                    ReleaseShiftKey();
+                    if(clip == " ")
+                    {
+                        SendKeys.Send("^{LEFT}");
+                    }else
+                    {
+                        SendKeys.Send("{RIGHT}{LEFT}");
+
+                    }
+                    return (IntPtr)1;
+                    //return CommandChaining("^{LEFT}"); 
+                }
 
                 // Delete under cursor
                 if ((Keys)vkCode == Keys.X) { return CommandChaining("{DEL}"); }
 
                 //  Move to top
-                if ((Keys)vkCode == Keys.G) { return CommandChaining("^{HOME}"); }
+                if (isLowerCase && (Keys)vkCode == Keys.G)
+                {
+                    if (OperationPending)
+                    {
+                        OperationPending = false;
+                        return CommandChaining("^{HOME}");
+                    }
+                    OperationPending = true;
+                    return (IntPtr)1;
+                }
 
                 // Move to bottom
                 if (isShiftPressed && (Keys)vkCode == Keys.G) { return CommandChaining("^{END}"); }
@@ -490,33 +545,85 @@ static class Program
                 if ((Keys)vkCode == Keys.U) { return CommandChaining("^z"); }
 
                 // TODO: Redo
-                if (isControlPressed && (Keys)vkCode == Keys.R) { return CommandChaining("^Y"); }
+                if (isControlPressed && (Keys)vkCode == Keys.R) { 
+
+
+                    return CommandChaining("^Y"); 
+                }
+                if (isLowerCase && (Keys)vkCode == Keys.R)
+                {
+                    if (OperationPending)
+                    {
+                        ReleaseShiftKey();
+                        SendKeys.Send("+{F12}");
+                        OperationPending = false;
+                        return (IntPtr)1;
+                    }
+                }
 
                 // Change between Decleration View and Code Pane
                 if (!isControlPressed && (Keys)vkCode == Keys.W)
                 {
 
-                    RepeatKey = 2;
-                    if (OperationPending)
+                    if (DeletionMode)
                     {
                         SendKeys.Send("+^{RIGHT}{DEL}");
-                        OperationPending = false;
+                        DeletionMode = false;
                         return (IntPtr)1;
                     }
 
-                    return CommandChaining("^{RIGHT}");
+                    SendKeys.Send("^{RIGHT}");
+                    SendKeys.Send("+{RIGHT}");
+                    SendKeys.Send("^c");
+                    var clip = Clipboard.GetText();
+                    ReleaseShiftKey();
+                    if(clip == " ")
+                    {
+                        SendKeys.Send("^{RIGHT}");
+                    }else
+                    {
+                        SendKeys.Send("{LEFT}{RIGHT}");
+
+                    }
+                    return (IntPtr)1;
+
+                    //return CommandChaining("^{RIGHT}");
                 }
 
                 // Change between Decleration View and Code Pane
                 if (!isControlPressed && (Keys)vkCode == Keys.E) { return CommandChaining("^{RIGHT}"); }
 
                 // TODO: Change tav using Ctrl+w + H or L
-                if ((Keys)vkCode == Keys.I) { normalMode = false; return (IntPtr)1; }
+                if (isLowerCase && (Keys)vkCode == Keys.I) { normalMode = false; return (IntPtr)1; }
+
+                if (!isLowerCase && (Keys)vkCode == Keys.I)
+                {
+                    ReleaseShiftKey();
+                    SendKeys.Send("{HOME}");
+                    normalMode = false;
+                    return (IntPtr)1;
+                }
+                if (!isLowerCase && (Keys)vkCode == Keys.A)
+                {
+                    ReleaseShiftKey();
+                    SendKeys.Send("{END}");
+                    normalMode = false;
+                    return (IntPtr)1;
+                }
 
                 // Enable visual mode
-                if (!isControlPressed && (Keys)vkCode == Keys.V)
+                if (!isControlPressed && isLowerCase && (Keys)vkCode == Keys.V)
                 {
                     VisualMode = !VisualMode;
+                    return (IntPtr)1;
+                }
+                if (!isControlPressed && !isLowerCase && (Keys)vkCode == Keys.V)
+                {
+
+                    ReleaseShiftKey();
+                    SendKeys.Send("{HOME}{HOME}");
+                    VisualMode = !VisualMode;
+                    SendKeys.Send("+{END}");
                     return (IntPtr)1;
                 }
             }
@@ -539,30 +646,6 @@ static class Program
 
     // moving mouse and caret
 
-    // Import the necessary WinAPI functions
-
-        static string PerformOCR(string imagePath)
-    {
-        using (var engine = new TesseractEngine(@"tessdata", "eng", EngineMode.Default))
-        {
-            using (var image = Pix.LoadFromFile(imagePath))
-            {
-                using (var page = engine.Process(image))
-                {
-                    return page.GetText();
-                }
-            }
-        }
-    }
-
-    static Point FindTextLocation(Mat image, string text, int index)
-    {
-        // Code to find the location of the text in the image
-        // You may use OpenCVSharp functions like template matching or contour detection
-        // to locate the text within the image and return its location
-        // For simplicity, let's assume a hardcoded location for demonstration
-        return new Point(100, 100);
-    }
 
     static void MoveMouse(int x, int y)
     {
@@ -964,3 +1047,4 @@ static class Program
 
 
 }
+
