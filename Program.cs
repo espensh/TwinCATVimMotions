@@ -11,6 +11,8 @@ namespace wimvimkeys;
 
 static class Program
 {
+
+
     private const int WH_KEYBOARD_LL = 13;
     private const int WM_KEYDOWN = 0x0100;
     private static LowLevelKeyboardProc _proc = HookCallback;
@@ -39,8 +41,6 @@ static class Program
 
 
         Task.Run(async () => await WindowMonitoringTask());
-
-
 
 
         ApplicationConfiguration.Initialize();
