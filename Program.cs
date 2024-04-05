@@ -1,12 +1,9 @@
 using EnvDTE;
-using System.Collections;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
-using EnvDTE80;
 using System.Text.RegularExpressions;
-using System.Numerics;
 namespace wimvimkeys;
 
 static class Program
@@ -646,6 +643,16 @@ static class Program
 
     // moving mouse and caret
 
+    // Import the necessary WinAPI functions
+
+    //static Point FindTextLocation(Mat image, string text, int index)
+    //{
+    //    // Code to find the location of the text in the image
+    //    // You may use OpenCVSharp functions like template matching or contour detection
+    //    // to locate the text within the image and return its location
+    //    // For simplicity, let's assume a hardcoded location for demonstration
+    //    return new Point(100, 100);
+    //}
 
     static void MoveMouse(int x, int y)
     {
